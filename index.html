@@ -1,0 +1,182 @@
+<script src="./kinetic-v4.4.3.min.js"></script>
+<script src='./jquery-1.8.0.min.js'></script>
+<script src='./shortcut.js'></script>
+<body style='background:#ddccff' onresize="stage.setScale(window.innerWidth/(2217),window.innerWidth/(2217)); stage.width=window.innerWidth; stage.height=window.innerHeight; stage.draw();">
+
+<!--key:<select onchange='key_change(this)'>
+	<option value="C">C</option>
+	<option value="D">D</option>
+</select>-->
+
+<div id="container"></div>
+</body>
+
+<script>var wire;
+var hz_table=[27.5000,29.1352,30.8677,32.7032,34.6478,36.7081,38.8909,41.2034,43.6535,46.2493,48.9994,51.9131,55.0000,58.2705,61.7354,65.4064,69.2957,73.4162,77.7817,82.4069,87.3071,92.4986,97.9989,103.826,110.000,116.541,123.471,130.813,138.591,146.832,155.563,164.814,174.614,184.997,195.998,207.652,220.000,233.082,246.942,261.626,277.183,293.665,311.127,329.628,349.228,369.994,391.995,415.305,440.000,466.164,493.883,523.251,554.365,587.330,622.254,659.255,698.456,739.989,783.991,830.609,880.000,932.328,987.767,1046.50,1108.73,1174.66,1244.51,1318.51,1396.91,1479.98,1567.98,1661.22,1760.00,1864.66,1975.53,2093.00,2217.46,2349.32,2489.02,2637.02,2793.83,2959.96,3135.96,3322.44,3520.00,3729.31,3951.07,4186.01];
+var stage = new Kinetic.Stage({scale:[window.innerWidth/(2217),window.innerWidth/(2217)],container: 'container',width: window.innerWidth,height: window.innerHeight});
+var	layer = new Kinetic.Layer(),anim_layer = new Kinetic.Layer();
+
+var s=[14.4,2.1,8.6,1.1];//?½é”®??4.4cm å®?.1cm é»‘é”®??.6cm å®?.9cm 
+for (var i=0;i<s.length; i++ ) s[i]*=18;
+
+var a=new Array();
+var sound=0,me=0;
+
+var w=s[1]+2,note_type=9,offset=0,offset_y=s[0]*.15;
+for(var i=0;i<88;i++){	
+	var t=(note_type%12); var rect;
+	//console.log("t="+t);
+	switch(t){
+		case 0: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;		
+		case 1: note({sound:i,y:offset_y,x:offset+w-s[3]/2,width: s[3],height:s[2],fill:'black'}); break;
+		case 2: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;
+		case 3: note({sound:i,y:offset_y,x:offset+w-s[3]/2,width: s[3],height:s[2],fill:'black'}); break;
+		case 4: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;				
+		case 5: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;
+		case 6: note({sound:i,y:offset_y,x:offset+w-s[3]/2,width: s[3],height:s[2],fill:'black'}); break;
+		case 7: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;		
+		case 8: note({sound:i,y:offset_y,x:offset+w-s[3]/2,width: s[3],height:s[2],fill:'black'}); break;
+		case 9: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;
+		case 10: note({sound:i,y:offset_y,x:offset+w-s[3]/2,width: s[3],height:s[2],fill:'black'}); break;
+		case 11: note({sound:i,y:offset_y,x:offset+=w,width: s[1],height:s[0],fill:'white'}); break;	
+	}
+	note_type++;	
+
+	if(t==0) {
+		var t=new Kinetic.Text({
+			x:offset,
+			shadowColor: 'black',
+			shadowBlur: 10,
+			shadowOffset: {x: 10,y: 10},
+			shadowOpacity: 0.5,
+			text: 'C'+parseInt((i-2)/12),fontSize: 32,fontFamily: 'Arial',fill: '#555',padding: 0,align: 'center'});
+		/*var rect = new Kinetic.Rect({
+			x:offset,
+			width:s[3],height:s[0]*1.2,
+			shadowColor: 'black',
+			shadowBlur: 10,
+			shadowOffset: {x: 10,y: 10},
+			shadowOpacity: 0.5,
+			stroke: '#555',strokeWidth: 5,fill: s.fill,cornerRadius: 10
+		});*/
+		layer.add(t);
+	}
+}
+for(var i=0;i<a.length;i++){
+	if(a[i].rect.getFill()=='black') a[i].rect.moveToTop();	
+	a[i].t.setText(hz_table[i]+" Hz"); a[i].t.moveToTop();					
+}
+add_note_key();
+stage.add(layer).add(anim_layer);
+
+
+var anim = new Kinetic.Animation(function(frame) {
+	var len=anim_layer.children.length;
+	var o=anim_layer.children;
+	
+	for(var i=0;i<len;i++){	
+		var b=o[i];
+		
+		if(typeof(b)=="undefined") continue;
+		else if(b.getY()>window.innerHeight*2) b.remove();
+		else b.setY(b.getY()+8);
+		
+	}
+}, anim_layer);
+anim.start();
+
+stage.draw();
+
+$(document).ready(function(){ 
+	$(document).mouseup(function(e){ me=0;});
+	$(document).mousedown(function(e){ 		
+		//console.log(e.button);
+		if( e.button == 0 ) {me=1;}
+		if( e.button == 2 ) { 
+			//focus.on=0;
+			return false; 
+		} 	
+		return true; 
+	}); 
+});
+function press_note(s){
+	var wav=new Audio("./data/"+(s.sound)+".wav");
+	wav.play();
+	var rect=new Kinetic.Rect({
+		x:s.x,y:s.y+s.height,		
+		width:s.width,height:30,
+		
+		//shadowColor: 'black',
+		//shadowBlur: 10,
+		//shadowOffset: {x: 10,y: 10},
+		//shadowOpacity: 0.5,
+		stroke: '#555',strokeWidth: 5,fill: s.fill,cornerRadius: 10
+	}); 
+	anim_layer.add(rect);
+}
+function note(s){	
+	var rect=new Kinetic.Rect(s); 
+	var t=new Kinetic.Text({		
+		shadowColor: 'black',
+		shadowBlur: 10,
+		shadowOffset: {x: 10,y: 10},
+		shadowOpacity: 0.5,
+		visible:false,x:s.x-s.width,y:s.y+s.height*1.1,text: 'Hz',fontSize: 32,fontFamily: 'Arial',fill: '#555',padding: 0,align: 'center'});
+	new Audio("./data/"+(i)+".wav");
+	rect.on('mouseover', function() {	
+		this.setFill("#ff5555");
+		if(me==1){	
+			press_note(s);			
+		}
+		
+		document.body.style.cursor = 'pointer';	
+		t.setVisible(true);
+		layer.draw();
+	});
+	rect.on('mousedown', function() {
+		document.body.style.cursor = 'pointer';		
+		press_note(s);		
+		layer.draw();
+	});
+	rect.on('mouseout', function() {
+		if(typeof(s.fill)=="undefined") this.setFill('white');
+		else this.setFill(s.fill);
+		
+		document.body.style.cursor = '';
+		t.setVisible(false);		
+		layer.draw();
+	});
+	layer.add(rect).add(t);
+	
+	
+	a.push({rect:rect,t:t,s:s});	
+}
+function add_note_key(){	
+	var key=['q','2','w','3','e','r','5','t','6','y','7','u','i','9','o','0','p','z','s','x','d','c','f','v','b','h','n','j','m'  ,  ',','l','.',';','/'];	
+	for(var i=0;i<key.length;i++){
+		var s=a[i].s;
+		//var a1=press_note(s);
+		shortcut.add(key[i],function(e) {
+			console.log("e="+e); wire=e;
+			for(var i=0;i<key.length;i++){
+				if(key[i]==e.key) {press_note(a[i+3+12*2].s); break;}
+			}
+		});
+	}
+		
+}
+function add_char(s){ //s=Hz number, a=88 notes	
+	//console.log('get_send='+s);
+	if(anim_layer.children.length<16){
+		s=parseInt(s);	
+		console.log('parseInt='+s);
+		for(var i=0;i<hz_table.length;i++){		
+			var c=hz_table[i]-s;
+			if(-1<=c&&c<=1) {
+				press_note(a[i].s);			
+				break;
+			}
+		}
+	}
+}
+ </script>
